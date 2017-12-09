@@ -12,6 +12,10 @@ function addTodo(text) {
  return { type: 'ADD_TODO', text }
 }
 
+function addList(title) {
+  return { type: 'ADD_LIST', title }
+ }
+
 // +----------------+
 // |                |
 // |    REDUCERS    |
@@ -24,7 +28,25 @@ const reducers = {
       case 'ADD_TODO':
         return [
           ...state,
-          action.todo
+          {
+            ...action.text,
+            id: state.length
+          }
+        ]
+      default:
+        return state
+    }
+  },
+  lists: (state = [], action) => {
+    switch (action.type) {
+      case 'ADD_LIST':
+        return [
+          ...state,
+          {
+            ...action.title,
+            id: state.length
+          }
+          
         ]
       default:
         return state
@@ -54,13 +76,14 @@ class List extends React.Component {
   createTodo = (e) => {
     e.preventDefault();
     store.dispatch(addTodo({
-      text: this.refs.text.value
+      text: this.refs.text.value,
+      listId: this.props.listId
     }));
     this.refs.text.value = '';
   }
 
   todos = () => {
-    return this.props.todos.map(todo => {
+    return this.props.todos.filter(todo => todo.listId === this.props.listId).map(todo => {
       return (<li key={todo.id}>{todo.text}</li>);
     });
   }
@@ -71,8 +94,41 @@ class List extends React.Component {
         <ul>
           {this.todos()}
         </ul>
-        <form onSubmit={this.createTodo}>
-          <input ref='text' placeholder="Add a TODO"/>
+        <form onSubmit={this.createTodo} placeholder="Add a TODO">
+          <input ref='text'/>
+          <button type="submit">submit</button>
+        </form>
+      </div>
+    );
+  }
+}
+
+class Board extends React.Component {
+  createList = (e) => {
+    e.preventDefault();
+    store.dispatch(addList({
+      title: this.refs.text.value
+    }));
+    this.refs.text.value = '';
+  }
+
+  lists = () => {
+    return this.props.lists.map(list => {
+      return (
+        <div key={list.id}>
+          <h3>{list.title}</h3>
+          <List listId={list.id} />
+        </div>
+      );
+    });
+  }
+
+  render() {
+    return (
+      <div style={{ display: 'flex' }}>
+        {this.lists()}
+        <form onSubmit={this.createList}>
+          <input ref='text' placeholder="Add a List"/>
           <button type="submit">submit</button>
         </form>
       </div>
@@ -81,16 +137,17 @@ class List extends React.Component {
 }
 
 function mapStateToProps(state) {
-  const { todos } = state;
-  return { todos };
+  const { todos, lists } = state;
+  return { todos, lists };
 }
 
 List = connect(mapStateToProps)(List)
+Board = connect(mapStateToProps)(Board)
 
 class App extends React.Component {
   render() {
     return <Provider store={store}>
-      <List />
+      <Board />
     </Provider>
   }
 }
