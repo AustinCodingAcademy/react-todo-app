@@ -1,6 +1,7 @@
-const { connect, Provider } = ReactRedux;
-const { createStore, combineReducers } = Redux;
-const { Component } = React;
+import { connect, Provider } from 'react-redux';
+import { createStore, combineReducers } from 'redux';
+import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 
 // +----------------+
 // |                |
