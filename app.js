@@ -1,29 +1,66 @@
+const { connect, Provider } = ReactRedux;
+const { createStore, combineReducers } = Redux;
 const { Component } = React;
 
-class List extends Component {
-  constructor() {
-    super();
-    this.state = {
-      todos: []
-    };
+// +----------------+
+// |                |
+// |    ACTIONS     |
+// |                |
+// +----------------+
+
+function addTodo(text) {
+ return { type: 'ADD_TODO', text }
+}
+
+// +----------------+
+// |                |
+// |    REDUCERS    |
+// |                |
+// +----------------+
+
+const reducers = {
+  todos: (state = [], action) => {
+    switch (action.type) {
+      case 'ADD_TODO':
+        return [
+          ...state,
+          action.todo
+        ]
+      default:
+        return state
+    }
   }
+};
+
+// +----------------+
+// |                |
+// |     STORE      |
+// |                |
+// +----------------+
+
+const store = createStore(combineReducers(reducers),
+  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+)
+
+
+// +----------------+
+// |                |
+// |   COMPONENTS   |
+// |                |
+// +----------------+
+
+class List extends React.Component {
 
   createTodo = (e) => {
     e.preventDefault();
-    this.setState({
-      todos: [
-        ...this.state.todos,
-        {
-          id: this.state.todos.length,
-          text: this.refs.text.value
-        }
-      ]
-    });
+    store.dispatch(addTodo({
+      text: this.refs.text.value
+    }));
     this.refs.text.value = '';
   }
 
   todos = () => {
-    return this.state.todos.map(todo => {
+    return this.props.todos.map(todo => {
       return (<li key={todo.id}>{todo.text}</li>);
     });
   }
@@ -43,9 +80,18 @@ class List extends Component {
   }
 }
 
+function mapStateToProps(state) {
+  const { todos } = state;
+  return { todos };
+}
+
+List = connect(mapStateToProps)(List)
+
 class App extends React.Component {
   render() {
-    return <List />;
+    return <Provider store={store}>
+      <List />
+    </Provider>
   }
 }
 
